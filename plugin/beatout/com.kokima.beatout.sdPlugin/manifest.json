@@ -1,0 +1,47 @@
+{
+	"Name": "Beatout",
+	"Version": "0.1.0.0",
+	"Author": "Tom Cuypers",
+	"Actions": [
+		{
+			"Name": "CameraSelector",
+			"UUID": "com.kokima.beatout.camera",
+			"Icon": "imgs/actions/camera/path1",
+			"Tooltip": "Select which camera to show on the large screen",
+			"PropertyInspectorPath": "ui/camera-selector.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/camera/key@2x",
+					"TitleAlignment": "middle"
+				}
+			]
+		}
+	],
+	"Category": "Beatout",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "NA",
+	"Icon": "imgs/plugin/beatout",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.5"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20",
+		"Debug": "enabled"
+	},
+	"UUID": "com.kokima.beatout"
+}
