@@ -1,20 +1,43 @@
-import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
-import ReconnectingWebSocket from "reconnecting-websocket";
+import { action, DialAction, KeyAction, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
+import { type State } from '../state'
 
 @action({ UUID: "com.kokima.beatout.camera" })
 export class CameraSelector extends SingletonAction<CameraSettings> {
-	private ws: ReconnectingWebSocket; // WebSocket instantie
+	private state: State; // WebSocket instantie
+	private action?: DialAction<CameraSettings> | KeyAction<CameraSettings>;
 
-    constructor(websocket: ReconnectingWebSocket) {
+    constructor(state: State) {
         super(); 
-		this.ws = websocket
-    } 
+		this.state = state
+		this.state.registerSelectedCamera(this.onCameraSwitched)
+    }
+
+	/*
+	private updateAppearance(cameraId: string, ev?: WillAppearEvent<CameraSettings>) {
+		this.steamDeck.
+    	const client = ev?.action.client || this.streamDeck.client;
+		if (!client) return;
+
+		// Check of dit de "juiste" camera is
+		const isSelected = cameraId === this.state.selectedCameraId;
+
+		// Stel kleur in: groen als geselecteerd, rood als niet
+		const color = isSelected ? { r: 0, g: 200, b: 0 } : { r: 200, g: 0, b: 0 };
+
+		client.setFillColor(ev?.context || this.streamDeck.context, color);
+	} */
+
+	onCameraSwitched (selectedCameraId: string) {
+		console.log('Camera switches to ', selectedCameraId, this.action)
+		// this.action?.showAlert()
+	}
 	/**
 	 * The {@link SingletonAction.onWillAppear} event is useful for setting the visual representation of an action when it becomes visible. This could be due to the Stream Deck first
 	 * starting up, or the user navigating between pages / folders etc.. There is also an inverse of this event in the form of {@link streamDeck.client.onWillDisappear}. In this example,
 	 * we're setting the title to the "cameraId".
 	 */
 	override onWillAppear(ev: WillAppearEvent<CameraSettings>): void | Promise<void> {
+		this.action = ev.action
 		return ev.action.setTitle(`${ev.payload.settings.cameraId}`);
 	}
 
@@ -25,16 +48,8 @@ export class CameraSelector extends SingletonAction<CameraSettings> {
 	 * settings using `setSettings` and `getSettings`.
 	 */ 
 	override async onKeyDown(ev: KeyDownEvent<CameraSettings>): Promise<void> {
-		// Update the count from the settings.
-		const { settings } = ev.payload; 
-		/*settings.incrementBy ??= 1;
-		settings.count = (settings.count ?? 0) + settings.incrementBy;
-
-		// Update the current count in the action's settings, and change the title.
-		await ev.action.setSettings(settings);
-		await ev.action.setTitle(`${settings.count}`);*/
-
-		this.ws.send(`{ "action": "camera", "id": ${settings.cameraId}}`);
+		const { settings } = ev.payload;
+		this.state.switchCamera(settings.cameraId)
 	}
 }
 

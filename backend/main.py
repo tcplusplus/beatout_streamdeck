@@ -7,8 +7,8 @@ from pydantic import BaseModel
 app = FastAPI()
 
 class State(BaseModel):
-    selected_camera: str
-    selected_room: str
+    selectedCamera: str
+    selectedRoom: str
 
 class ConnectionManager:
     def __init__(self):
@@ -26,7 +26,7 @@ class ConnectionManager:
             await connection.send_text(message)
 
 manager = ConnectionManager()
-state = State(selected_room='', selected_camera='')
+state = State(selectedRoom='', selectedCamera='')
 
 
 @app.websocket("/ws")
@@ -36,11 +36,12 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             text = await websocket.receive_text()
             try:
+                print(text)
                 data = json.loads(text)
                 if data.get('action') == 'room' and 'id' in data:
-                    state.selected_room = data['id']
+                    state.selectedRoom = data['id']
                 if data.get('action') == 'camera' and 'id' in data:
-                    state.selected_camera = data['id']
+                    state.selectedCamera = data['id']
                 await manager.broadcast(state.model_dump_json())
             except Exception as error:
                 logging.warning('Unknown message received: %r', error)
