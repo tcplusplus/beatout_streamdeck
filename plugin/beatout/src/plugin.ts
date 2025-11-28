@@ -7,8 +7,6 @@ streamDeck.logger.setLevel(LogLevel.TRACE);
 
 try {
     const state = new State()
-
-    // Register the increment action.
     streamDeck.actions.registerAction(new CameraSelector(state));
 } catch(e) {
     console.log('error', e)

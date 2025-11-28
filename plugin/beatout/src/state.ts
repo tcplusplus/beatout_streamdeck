@@ -18,6 +18,7 @@ export class State {
 
     private updateRoomCallbacks: IdCallback[] = []
     private updateCameraCallbacks: IdCallback[] = []
+    private clients: (WebSocket|ReconnectingWebSocket)[] = []
 
     constructor () {
         this.client = new ReconnectingWebSocket("ws://127.0.0.1:8000/ws", [], options);// We can enable "trace" logging so that all messages between the Stream Deck, and the plugin are recorded. When storing sensitive information
@@ -33,18 +34,23 @@ export class State {
         this.client.addEventListener("close", (ev) => {
             console.log("WS: CLOSE", ev.code, ev.reason);
         });
+        this.clients.push(this.client)
 
         this.server = new WebSocketServer({ port: 20000 });
         this.server.on('connection', (ws) => {
+            this.clients.push(ws)
             console.log('Client connected');
             ws.on('message', (message) => {
-                console.log('Received:', message.toString());
+                this.processMessage(message.toString());
             });
-            ws.send('Hallo van de server!');
+            ws.on("close", () => {
+                this.clients = this.clients.filter(client => client !== ws)
+            })
+            ws.send(JSON.stringify({"action": "welcome"}));
         });
     }
 
-    private processMessage (message: string ) {
+    private processMessage (message: string) {
         console.log("text", message)
         const data = JSON.parse(message)
         if (this.selectedCamera !== data.selectedCamera) {
@@ -66,6 +72,14 @@ export class State {
     }
 
     switchCamera (cameraId: string) {
-        this.client.send(`{ "action": "camera", "id": "${cameraId}"}`);
+        const data = {action: "camera", id: cameraId}
+        const message = JSON.stringify(data)    
+        this.sendToAllClients(message)
+    }
+
+    private sendToAllClients(message: string) {
+        this.clients.forEach(client => {
+            client.send(message)
+        });
     }
 }

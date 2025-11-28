@@ -39,7 +39,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 print(text)
                 data = json.loads(text)
                 if data.get('action') == 'room' and 'id' in data:
-                    state.selectedRoom = data['id']
+                    state.selectedRom = data['id']
                 if data.get('action') == 'camera' and 'id' in data:
                     state.selectedCamera = data['id']
                 await manager.broadcast(state.model_dump_json())
