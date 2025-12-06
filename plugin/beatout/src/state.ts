@@ -1,41 +1,20 @@
 // @ts-ignore
 import WebSocket from "ws";
 import { WebSocketServer } from 'ws';
-import ReconnectingWebSocket from "reconnecting-websocket";
-
-const options = {
-  WebSocket: WebSocket,   // <-- verplicht in Node.js
-};
 
 type IdCallback = (id: string) => void
-
+type ToggleCallback = (enabled: boolean) => void
 
 export class State {
-    client: ReconnectingWebSocket
     server: WebSocketServer
-    selectedRoom: string = ''
     selectedCamera: string = ''
+    cameraSelectorEnabled: boolean = false
 
-    private updateRoomCallbacks: IdCallback[] = []
     private updateCameraCallbacks: IdCallback[] = []
-    private clients: (WebSocket|ReconnectingWebSocket)[] = []
+    private updateCameraToggleCallbacks: ToggleCallback[] = []
+    private clients: (WebSocket)[] = []
 
     constructor () {
-        this.client = new ReconnectingWebSocket("ws://127.0.0.1:8000/ws", [], options);// We can enable "trace" logging so that all messages between the Stream Deck, and the plugin are recorded. When storing sensitive information
-        this.client.addEventListener("open", () => {
-            console.log("WS: OPEN");
-        });
-        this.client.addEventListener("message", (ev) => {
-            this.processMessage(ev.data);
-        });
-        this.client.addEventListener("error", (err) => {
-            console.error("WS: ERROR", err);
-        });
-        this.client.addEventListener("close", (ev) => {
-            console.log("WS: CLOSE", ev.code, ev.reason);
-        });
-        this.clients.push(this.client)
-
         this.server = new WebSocketServer({ port: 20000 });
         this.server.on('connection', (ws) => {
             this.clients.push(ws)
@@ -53,13 +32,13 @@ export class State {
     private processMessage (message: string) {
         console.log("text", message)
         const data = JSON.parse(message)
-        if (this.selectedCamera !== data.selectedCamera) {
+        if (data.selectedCamera !== undefined && this.selectedCamera !== data.selectedCamera) {
             this.selectedCamera = data.selectedCamera
             this.updateCameraCallbacks.forEach(callback => callback(this.selectedCamera))
         }
-        if (this.selectedRoom !== data.selectedRoom) {
-            this.selectedRoom = data.selectedRoom
-            this.updateRoomCallbacks.forEach(callback => callback(this.selectedRoom))
+        if (data.cameraToggle !== undefined) {
+            this.cameraSelectorEnabled = data.cameraToggle
+            this.updateCameraToggleCallbacks.forEach(callback => callback(this.cameraSelectorEnabled))
         }
     }
 
@@ -67,12 +46,18 @@ export class State {
         this.updateCameraCallbacks.push(callback)
     }
 
-    registerSelectedRoom (callback: IdCallback) {
-        this.updateRoomCallbacks.push(callback)
+    registerToggleCamera (callback: ToggleCallback) {
+        this.updateCameraToggleCallbacks.push(callback)
     }
 
     switchCamera (cameraId: string) {
         const data = {action: "camera", id: cameraId}
+        const message = JSON.stringify(data)    
+        this.sendToAllClients(message)
+    }
+
+    setCameraToggle (toggleEnabled: boolean) {
+        const data = {action: "cameraToggle", enabled: toggleEnabled}
         const message = JSON.stringify(data)    
         this.sendToAllClients(message)
     }

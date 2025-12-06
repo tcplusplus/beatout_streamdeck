@@ -18,6 +18,22 @@
 					"TitleAlignment": "bottom"
 				}
 			]
+		},
+		{
+			"Name": "CameraToggler",
+			"UUID": "com.kokima.beatout.camera-toggle",
+			"Icon": "imgs/actions/camera/toggle-icon",
+			"Tooltip": "Select if the camera is auto toggling or not",
+			"PropertyInspectorPath": "ui/camera-toggle.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/camera/toggle-regular",
+					"TitleAlignment": "bottom"
+				}
+			]
 		}
 	],
 	"Category": "Beatout",
