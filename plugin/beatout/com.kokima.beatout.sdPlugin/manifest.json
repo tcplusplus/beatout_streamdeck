@@ -14,7 +14,7 @@
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/camera/key@2x",
+					"Image": "imgs/actions/camera/camera-regular",
 					"TitleAlignment": "bottom"
 				}
 			]
